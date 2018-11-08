@@ -1,0 +1,115 @@
+{
+  "system": {
+    "systemName": "openiod-fiware-connect",
+    "systemCode": "SCAPE604",
+    "systemListenPort": "5000",
+    "serviceType": "openiod-fiware-connect",
+    "versionStr": "",
+    "version": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 1
+    }
+  },
+  "service": {
+    "josene": {
+      "procedure": {
+        "name": "default pull",
+        "module": "openiod-fiware-connect-pull",
+        "repeat": {"wait":60000}
+      },
+      "source": {
+        "name": "josene",
+        "validate":"openiod-fiware-validate-{{validation procedure}}",
+        "method": "GET",
+        "protocol": "https",
+        "host": "{{hostname}}",
+        "port": "{{portnumber}}",
+        "prefixPath": "{{urlprefix}}",
+        "path": "{{urlpath}}",
+        "suffixPath": "",
+        "token": "{{token}}",
+        "info": "{{infoUrl}}",
+        "idMap": {
+          "id": "id",
+          "entityTime": "{{timeAttribute}}"
+        },
+        "attributeMap": [
+          {
+            "targetType": "{{Fiware model}}",
+            "targetIdPrefix": "{{idPrefix}}",
+            "attributes": {
+              "{{sourceAttributeName1}}": "{{targetAttributeName1}}",
+              "{{sourceAttributeName2}}": "{{targetAttributeName2}}",
+              "{{sourceAttributeName3}}": "{{targetAttributeName3}}"
+            }
+          },
+          {
+            "targetType": "{{Fiware model}}",
+            "targetIdPrefix": "{{idPrefix}}",
+            "attributes": {
+              "{{sourceAttributeName1}}": "{{targetAttributeName1}}",
+              "{{sourceAttributeName2}}": "{{targetAttributeName2}}",
+              "{{sourceAttributeName3}}": "{{targetAttributeName3}}"
+            }
+          }
+        ]
+      },
+      "target": {
+        "name": "contextBroker",
+        "active": true,
+        "method": "POST",
+        "protocol": "https",
+        "host": "{{contextBrokerHost}}",
+        "port": "{{contextbrokerPort}}",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path":"",
+        "FiwareService": "{{Fiware-Service}}",
+        "FiwareServicePath": "{{Fiware-ServicePath}}",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ],
+        "entityTimeConfig":{"round":"UP","trunc":"minute"},
+        "type": "targetType"
+      },
+      "sourceCopyTarget": {
+        "name": "contextBroker",
+        "active": false,
+        "method": "POST",
+        "protocol": "https",
+        "host": "{{contextBrokerHost}}",
+        "port": "{{contextBrokerPort}}",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path":"",
+        "FiwareService": "{{Fiware-Service}}",
+        "FiwareServicePath": "{{Fiware-ServicePath}}"
+      },
+      "errorTarget": {
+        "name": "contextBroker",
+        "active": false,
+        "protocol": "https",
+        "host": "{{contextBrokerHost}}",
+        "port": "{{contextBrokerPort}}",
+        "prefixPath": "/",
+        "FiwareService": "{{Fiware-Service}}",
+        "FiwareServicePath": "{{Fiware-ServicePath}}",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ],
+        "type": "targetType"
+      }
+    }
+  },
+  "parameter": {
+
+  },
+  "modules": [
+
+  ]
+}
