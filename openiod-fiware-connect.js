@@ -2,7 +2,7 @@
 ** Module: openiod-fiware.js
 **   OpenIod FIWARE service
 **
-** e.g. node openiod-fiware pull josene foi=[{\'id\':14540},{\'id\':14539}]
+** e.g. node openiod-fiware-connect pull josene foi=[{\"id\":14540},{\"id\":14539}]
 **
 */
 /*
@@ -37,7 +37,7 @@ if (argvFois) {
   argv.fois               = JSON.parse(argvFois.substr(4));
 }
 
-var main_module 				= 'openiod-fiware';
+var main_module 				= 'openiod-fiware-connect';
 console.log("Path: " + main_module);
 //var modulePath 					= require('path').resolve(__dirname, 'node_modules/openiod-fiware/../..');
 var modulePath 					= __dirname;
