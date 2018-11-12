@@ -29,7 +29,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 "use strict";
 // **********************************************************************************
 // add module specific requires
-//var request 			= require('request');
+var https 			= require('https');
+
 const express = require('express');
 const path = require('path');
 const app = express();
