@@ -136,7 +136,7 @@ var processResult = function(result){
 		var _dateTime 				= sourceData[_attributeDateTime];
 		var _key 							= _id+'_'+_dateTime;
 		if (_sourceCopyTarget && _sourceCopyTarget.active){
-			self.sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
+			sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
 		}
 
 		if (_sourceValidate) {
@@ -181,7 +181,7 @@ var processResult = function(result){
 						fiwareObject.type		=_map.targetType;
 					}
 				}
-				self.sendToTarget(fiwareObject, _target);
+				sendToTarget(fiwareObject, _target);
 			}
 
 		}
