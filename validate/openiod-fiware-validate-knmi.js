@@ -113,6 +113,9 @@ module.exports = {
 	time:function(inValue){
 		return inValue;
 	},
+	entityTime:function(inValue){
+		return inValue;
+	},
 	lat:function(inValue){
 		_latitude = inValue;
 		if (_latitude != undefined && _longitude!= undefined && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
