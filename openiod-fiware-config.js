@@ -100,6 +100,10 @@
 				// Parameters
 				parameter									= systemConfig.parameter;
 
+				var log = function(message){
+					console.log(new Date().toISOString()+' | '+message);
+				}
+
 				// module overrules default config
 				if (systemConfig.modules) {
 					for (var i=0;i<systemConfig.modules.length;i++) {
@@ -116,24 +120,46 @@
 					}
 				}
 
-				console.log('\n=================================================================');
-				console.log();
-				console.log('Start systemname         :', systemName);
-				console.log(' Systemmaincode / subcode:', mainSystemCode, systemCode );
-				console.log(' Systemversion           :', systemVersion);
-				console.log(' Systemhost              :', systemHostName);
-				console.log(' System folder           :', systemFolder);
-				console.log(' System folder parent    :', systemFolderParent);
-				console.log(' System config folder    :', systemConfigLocalPath);
-				console.log(' System Main modulename  :', systemMainModuleName);
-				console.log(' Runtime command         :', argv.command);
-				console.log(' Servicetype             :', systemServiceType);
-				console.log(' Listening port          :', systemListenPort);
-				console.log(' System start            :', systemStart.toISOString());
-				console.log('=================================================================\n');
+				log('=================================================================');
+				log('');
+				log('Start systemname         : ' + systemName);
+				log(' Systemmaincode / subcode: ' + mainSystemCode + ' '+ systemCode );
+				log(' Systemversion           : ' + systemVersion);
+				log(' Systemhost              : ' + systemHostName);
+				log(' System folder           : ' + systemFolder);
+				log(' System folder parent    : ' + systemFolderParent);
+				log(' System config folder    : ' + systemConfigLocalPath);
+				log(' System Main modulename  : ' + systemMainModuleName);
+				log(' Runtime command         : ' + argv.command);
+				log(' Servicetype             : ' + systemServiceType);
+				log(' Listening port          : ' + systemListenPort);
+				log(' System start            : ' + systemStart.toISOString());
+				log('=================================================================\n');
+				log('=================================================================');
+				log('LICENSE');
+				log('	');
+				log('Id: openiod-fiware-connect-server');
+				log('Generic service as part of the generic connector to enable services which receive push messages from external services.');
+				log('	');
+				log('Copyright (C) 2018  André van der Wiel / Scapeler http://www.scapeler.com');
+				log('')
+				log('This program is free software: you can redistribute it and/or modify');
+				log('it under the terms of the GNU Affero General Public License as published');
+				log('by the Free Software Foundation, either version 3 of the License, or');
+				log('(at your option) any later version.');
+				log('')
+				log('This program is distributed in the hope that it will be useful,');
+				log('but WITHOUT ANY WARRANTY; without even the implied warranty of');
+				log('MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the');
+				log('GNU Affero General Public License for more details.');
+				log('')
+				log('You should have received a copy of the GNU Affero General Public License');
+				log('along with this program.  If not, see <https://www.gnu.org/licenses/>.');
+				log('')
+				log('=================================================================\n');
 
 				if (mainSystemCode != systemBaseCode) {
-					console.log('ERROR: SYSTEMCODE OF CONFIG FILE NOT EQUAL TO SYSTEM BASECODE (', systemCode, 'vs', systemBaseCode, ')');
+					log('ERROR: SYSTEMCODE OF CONFIG FILE NOT EQUAL TO SYSTEM BASECODE (' + systemCode + ' vs ' + systemBaseCode + ')');
 					return false;
 				}
 				return true;

@@ -3,6 +3,7 @@
 **   OpenIod FIWARE service
 **
 ** e.g. node openiod-fiware-connect pull josene foi=[{\"id\":14540},{\"id\":14539}]
+** e.g. node openiod-fiware-connect server knmi
 **
 */
 /*
@@ -38,10 +39,10 @@ if (argvFois) {
 }
 
 var main_module 				= 'openiod-fiware-connect';
-console.log("Path: " + main_module);
+//console.log("Path: " + main_module);
 //var modulePath 					= require('path').resolve(__dirname, 'node_modules/openiod-fiware/../..');
 var modulePath 					= __dirname;
-console.log("Modulepath: " + modulePath);
+//console.log("Modulepath: " + modulePath);
 var openIoDConfig 			= require(modulePath + '/openiod-fiware-config');
 openIoDConfig.init(main_module, argv);
 
@@ -105,7 +106,7 @@ var errorMessages = {
 	, URLERROR 					: { "message": 'URL incorrect'					, "returnCode": 501 }
 	, NOFOI 						: { "message": 'Feature of Interest missing'	, "returnCode": 501 }
 	, NOMODEL 					: { "message": 'MODEL parameter missing'		, "returnCode": 501 }
-	, NOARGVCOMMAND			: { "message": 'ERROR: Commandline argument command is missing or incorrect (push/pull)'		, "returnCode": -1 }
+	, NOARGVCOMMAND			: { "message": 'ERROR: Commandline argument command is missing or incorrect (push/pull/serve)'		, "returnCode": -1 }
 	, NOARGVSERVICE			: { "message": 'ERROR: Commandline argument service is missing or unknown in this setting'		, "returnCode": -1 }
 }
 
@@ -118,19 +119,21 @@ var standardQueryKeys = {
 var getModule = function(service,modulePath) {
 	try {
     log('Load module: '+modulePath);
-		serviceCache[service.name] = require('./'+modulePath+'.js');
+//		serviceCache[service.name] = require('./'+modulePath+'.js');
+    serviceCache[service.name] = require(modulePath+'.js');
 	}
 	catch(e) {
 	}
 }
 var executeService = function() {
 	if (serviceCache[_service.name] == null ) {
-		getModule(_service,'service/' +_service.procedure.module);
+		getModule(_service,__dirname+'/service/' +_service.procedure.module);
 		if (serviceCache[_service.name] == null ) {
-			getModule(_service,'service/' +_service.procedure.module+'/'+_service.procedure.module);
+			getModule(_service,__dirname+'/service/' +_service.procedure.module+'/'+_service.procedure.module);
 		}
 		if (serviceCache[_service.name] == null ) {
 			log('Error: module not found:' + _service.procedure.module);
+      log(__dirname);
 			return -1;
 		}
 	}
@@ -145,7 +148,7 @@ var executeService = function() {
 };
 
 
-if (argv.command != 'push' && argv.command != 'pull') {
+if (argv.command != 'push' && argv.command != 'pull' && argv.command != 'serve') {
 	console.error(errorMessages.NOARGVCOMMAND.message);
 	return errorMessages.NOARGVCOMMAND.returnCode;
 }
@@ -162,7 +165,7 @@ if (_service == undefined) {
 	return errorMessages.NOARGVSERVICE.returnCode;
 }
 
-console.log("OpenIoD FIWARE execute: " + argv.command +' service '+ argv.serviceName +
+log("OpenIoD FIWARE execute: " + argv.command +' service '+ argv.serviceName +
 	', source: ' + _service.source.name + ', procedure: ' + _service.procedure.name +
   ', target: ' + _service.target.name);
 
