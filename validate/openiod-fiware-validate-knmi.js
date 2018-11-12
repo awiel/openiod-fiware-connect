@@ -1,5 +1,5 @@
 /*
-** Module: openiod-fiware-validate-josene.js
+** Module: openiod-fiware-validate-knmi.js
 **  Module to validate and convert source data
 **
 **
@@ -8,9 +8,9 @@
 
 /*
 
-Id: openiod-fiware-validate-josene
+Id: openiod-fiware-validate-knmi
 Module as part of the generic connector to enable pull services and to connect external services with Fiware Context broker.
-This module validates and transforms attribute from the external system Josene https://josene.intemo.com/docs/index.html 
+This module validates and transforms attribute from the external system knmi https://data.knmi.nl provided by (Scapeler) SCAPE604/knmi-data/knmi-import.sh
 
 Copyright (C) 2018  André van der Wiel / Scapeler http://www.scapeler.com
 
@@ -54,44 +54,19 @@ var log = function(message){
 	console.log(new Date().toISOString()+' | '+message);
 }
 
-var milliKelvinToCelsius = function(n){
-	return Math.round((n/1e3-273.15)*100)/100
-};
-var convertGPS2LatLng = function(gpsValue){
-	var b31_28 	= gpsValue>>28;
-	var b27_0		= gpsValue-(b31_28<<28);
-	var northSouth = b31_28>>3;
-	var N_U = b31_28 - (northSouth<<3);
-	var degrees = b27_0 >> 20;
-	var minutes = (b27_0 - (degrees<<20))/1000000;
-	var result = northSouth==1?(degrees+minutes)*-1:degrees+minutes;
-	return result;
-};
 var _location = {"type": "geo:json","value": {"type": "Point","coordinates": [0, 0]}};
 var _latitude;
 var _longitude;
-var getLocation = function(location,lat,lon) {
+var _height;
+var getLocation = function(location,lat,lon,height) {
 	var _tmpLocation = location;
-	_tmpLocation.value.coordinates[0]	= _latitude;
-	_tmpLocation.value.coordinates[1]	= _longitude;
+	_tmpLocation.value.coordinates[0]	= lat;
+	_tmpLocation.value.coordinates[1]	= lon;
+	_tmpLocation.value.coordinates[2]	= height;
 	return _tmpLocation;
 };
 
-var _co2 = {"value":undefined,"metadata":{"unitCode":{"value":"59"}}}; // 59=ppm
-var getCo2 = function(value) {
-	_co2.value = value;
-	return _co2;
-};
-var _pm25 = {"value":undefined,"metadata":{"unitCode":{"value":"GQ"}}}; // GQ=micrograms per cubic meter
-var getPm25 = function(value) {
-	_pm25.value = value;
-	return _pm25;
-};
-var _pm10 = {"value":undefined,"metadata":{"unitCode":{"value":"GQ"}}}; // GQ=micrograms per cubic meter
-var getPm10 = function(value) {
-	_pm10.value = value;
-	return _pm10;
-};
+
 var _relativeHumidity = {"value":undefined,"metadata":{"unitCode":{"value":"P1"}}}; // P1=%
 var getRelativeHumidity = function(value) {
 	_relativeHumidity.value = value;
@@ -107,11 +82,6 @@ var getAirPressure = function(value) {
 	_airPressure.value = value;
 	return _airPressure;
 };
-var _audio = {"value":undefined,"metadata":{"unitCode":{"value":"35"}}}; // 35=dB
-var getAudio = function(value) {
-	_audio.value = value;
-	return _audio;
-};
 
 
 
@@ -126,7 +96,7 @@ module.exports = {
 	},
 	setDefaults(){
 		_defaults = new Object();
-		_defaults.source = "https://josene.intemo.com/docs/index.html";
+		_defaults.source = "https://data.knmi.nl";
 	},
 	getDefaults(){
 		return _defaults;
@@ -134,48 +104,50 @@ module.exports = {
 	setData:function(sourceData){
 		_sourceData = sourceData;
 	},
-	id:function(inValue){
+	station:function(inValue){
+		return inValue;
+	},
+	stationName:function(inValue){
 		return inValue;
 	},
 	time:function(inValue){
 		return inValue;
 	},
-	v_audio_total:function(inValue){
-		return getAudio(inValue);
-	},
-	s_barometer:function(inValue){
-		return getAirPressure(inValue/100);
-	},
-	s_humidity:function(n){
-		return getRelativeHumidity(n/1000);
-	},
-	s_temperatureambient:function(n){
-		return getTemperature(milliKelvinToCelsius(n));
-	},
-	s_temperatureunit:function(n){
-		return getTemperature(milliKelvinToCelsius(n));
-	},
-	s_co2:function(n){
-		return getCo2(n);
-	},
-	s_no2:function(n){
-		return n;
-	},
-	s_pm10:function(n){
-		return getPm10(n/1000);
-	},
-	s_pm2_5:function(n){
-		return getPm25(n/1000);
-	},
-	s_latitude:function(n){
-		_latitude = convertGPS2LatLng(n);
-		if (_latitude != undefined && _longitude!= undefined) return getLocation(_location,_latitude,_longitude);
+	lat:function(inValue){
+		_latitude = inValue;
+		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
 	},
-	s_longitude:function(n){
-		_longitude = convertGPS2LatLng(n);
-		if (_latitude != undefined && _longitude!= undefined) return getLocation(_location,_latitude,_longitude);
+	lon:function(inValue){
+		_longitude = inValue;
+		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
+	},
+	height:function(inValue){
+		_height = inValue;
+		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
+		else return undefined;
+	},
+	dd:function(inValue){
+		return inValue;
+	},
+	ff:function(inValue){
+		return inValue;
+	},
+	pp:function(inValue){
+		return getAirPressure(inValue);
+	},
+	D1H:function(inValue){
+		return inValue;
+	},
+	R1H:function(inValue){
+		return inValue;
+	},
+	ta:function(inValue){
+		return getTemperature(inValue);
+	},
+	rh:function(inValue){
+		return getRelativeHumidity(inValue);
 	}
 }
 

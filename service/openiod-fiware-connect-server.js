@@ -125,6 +125,80 @@ var formatDate = function(date) {
 }
 */
 
+var processResult = function(result){
+	var _result = result; //JSON.parse(result);
+//		console.log(_result);
+	for (var i=0;i<_result.length;i++){
+		var sourceData 				= _result[i];
+		var _attributeId 			= _sourceIdMap["id"];
+		var _attributeDateTime= _sourceIdMap["entityTime"];
+		var _id 							= sourceData[_attributeId];
+		var _dateTime 				= sourceData[_attributeDateTime];
+		var _key 							= _id+'_'+_dateTime;
+		if (_sourceCopyTarget && _sourceCopyTarget.active){
+			self.sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
+		}
+
+		if (_sourceValidate) {
+			_sourceValidate.init(_service,_openIoDConfig,sourceData);
+		}
+		for (var m=0;m<_sourceAttributeMap.length;m++){
+			var _map 						= _sourceAttributeMap[m];
+			var fiwareObject 		= {};
+			if (_sourceValidate.getDefaults) {
+				_sourceValidate.setDefaults();
+				fiwareObject = _sourceValidate.getDefaults();
+			}
+			for (var attribute in _map.attributes){
+				var targetAttribute		=_map.attributes[attribute];
+				if(sourceData[attribute]){
+					var _attr = sourceData[attribute];
+					if(_sourceValidate[attribute]) {
+//							console.log(' Validation for attribute '+ attribute);
+						var targetValue = _sourceValidate[attribute](sourceData[attribute]);
+						if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
+//							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
+//							console.dir(fiwareObject[targetAttribute]);
+					} else {
+						log(' No validation for attribute '+ attribute);
+						fiwareObject[targetAttribute]=sourceData[attribute];
+					}
+				}
+			}
+
+			if (_target && _target.active){
+				if (_target.entityTimeConfig){
+					var _tmpDateTime = new Date(_dateTime);
+					if (_target.entityTimeConfig.round=='UP' && _target.entityTimeConfig.trunc=='minute') {
+						_tmpDateTime = new Date(_tmpDateTime.getTime()+59999);
+						fiwareObject.entityTime = new Date(_tmpDateTime.getFullYear(),_tmpDateTime.getMonth(),_tmpDateTime.getDate()
+												,_tmpDateTime.getHours(),_tmpDateTime.getMinutes()).toISOString();
+						fiwareObject.id			=_map.targetIdPrefix+_id+'_'+fiwareObject.entityTime;
+						fiwareObject.type		=_map.targetType;
+					}	else {
+						fiwareObject.entityTime = _dateTime;
+						fiwareObject.id			=_map.targetIdPrefix+_key;
+						fiwareObject.type		=_map.targetType;
+					}
+				}
+				self.sendToTarget(fiwareObject, _target);
+			}
+
+		}
+	}
+};
+
+var sendToSourceCopyTarget = function(id,data,target) {
+	console.log('Todo: sendToSourceCopyTarget');
+	console.log(id);
+}
+
+var sendToTarget = function(fiwareObject,_target) {
+	console.log(fiwareObject);
+	console.log(_target);
+}
+
+
 
 module.exports = {
 	init: function(service,openIoDConfig) {
@@ -175,6 +249,24 @@ initRoutes: function(){
 	app.post('/openiod-fiware-connect/knmi', function(req, res) {
 		console.log("openiod-fiware-connect/knmi: " + req.url);
 		console.dir(req.body);
+		results = req.body;
+		for (var i=0;i<results.station.length();i++) {
+			var result = {};
+			result.station = results.station[i];
+			result.stationName = results.stationName[i];
+			result.lat = results.lat[i];
+			result.lon = results.lon[i];
+			result.height = results.height[i];
+			result.dd = results.dd[i];
+			result.ff = results.ff[i];
+			result.pp = results.pp[i];
+			result.D1H = results.D1H[i];
+			result.R1H = results.R1H[i];
+			result.ta = results.ta[i];
+			result.rh = results.rh[i];
+			result.time = results.time;
+			processResult(result);
+		}
 		res.send("Message received");
 	});
 
