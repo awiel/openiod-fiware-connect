@@ -180,6 +180,10 @@ var processResult = function(result){
 						fiwareObject.id			=_map.targetIdPrefix+_key;
 						fiwareObject.type		=_map.targetType;
 					}
+				} else {
+					fiwareObject.entityTime = _dateTime;
+					fiwareObject.id			=_map.targetIdPrefix+_key;
+					fiwareObject.type		=_map.targetType;
 				}
 				sendToTarget(fiwareObject, _target);
 			}
