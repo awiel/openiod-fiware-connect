@@ -250,7 +250,7 @@ initRoutes: function(){
 		console.log("openiod-fiware-connect/knmi: " + req.url);
 		console.dir(req.body);
 		var results = req.body;
-		for (var i=0;i<results.station.length();i++) {
+		for (var i=0;i<results.station.length;i++) {
 			var result = {};
 			result.station = results.station[i];
 			result.stationName = results.stationName[i];
