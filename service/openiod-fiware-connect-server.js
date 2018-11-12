@@ -195,7 +195,7 @@ var processResult = function(result){
 var sendToSourceCopyTarget = function(id,data,target) {
 	console.log('Todo: sendToSourceCopyTarget');
 	console.log(id);
-}
+};
 
 var sendToTarget = function(fiwareObject,_target) {
 	//console.log(fiwareObject);
@@ -211,6 +211,7 @@ var postDataContextBroker = function(fiwareObject,target){
 //		postData.id = fiwareObject.id;
 //		postData.type = fiwareObject.type;
 //		postData.content = fiwareObject.sourceAttributes;
+/*
 	var _data = JSON.stringify(fiwareObject);
 
 	var options = {
@@ -244,6 +245,7 @@ var postDataContextBroker = function(fiwareObject,target){
 
 	req.write(_data);
 	req.end();
+*/
 };
 
 
