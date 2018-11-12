@@ -127,7 +127,7 @@ var formatDate = function(date) {
 
 var processResult = function(result){
 	var _result = result; //JSON.parse(result);
-	console.log(_result);
+//	console.log(_result);
 	for (var i=0;i<_result.length;i++){
 		var sourceData 				= _result[i];
 		var _attributeId 			= _sourceIdMap["id"];
@@ -266,6 +266,7 @@ initRoutes: function(){
 			result.ta = results.ta[i];
 			result.rh = results.rh[i];
 			result.time = results.time;
+			result.entityTime = results.entityTime;
 			structuredResults.push(result);
 		}
 		processResult(structuredResults);
