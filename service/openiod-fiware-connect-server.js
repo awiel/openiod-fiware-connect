@@ -198,9 +198,53 @@ var sendToSourceCopyTarget = function(id,data,target) {
 }
 
 var sendToTarget = function(fiwareObject,_target) {
-	console.log(fiwareObject);
-	console.log(_target);
+	//console.log(fiwareObject);
+	//console.log(target);
+	if (target.name=='contextBroker') {
+		postDataContextBroker(fiwareObject,target)
+	}
 }
+
+var postDataContextBroker = function(fiwareObject,target){
+	log('POST data '+target.name+' '+target.host+':'+target.FiwareService+target.FiwareServicePath+' id:'+fiwareObject.id+' type:'+fiwareObject.type);
+//		var postData = {};
+//		postData.id = fiwareObject.id;
+//		postData.type = fiwareObject.type;
+//		postData.content = fiwareObject.sourceAttributes;
+	var _data = JSON.stringify(fiwareObject);
+
+	var options = {
+		hostname: target.host,
+		port: 		target.port,
+		path: 		target.prefixPath+target.path,
+		method: 	target.method,
+		headers: {
+				 'Content-Type': 				'application/json',
+				 'Content-Length': 			_data.length,
+				 'Fiware-Service': 			target.FiwareService,
+				 'Fiware-ServicePath': 	target.FiwareServicePath
+			 }
+	};
+
+	//console.log(options);
+	//console.log(_data);
+	var req = https.request(options, (res) => {
+		log('statusCode:' + res.statusCode);
+		//console.log('headers:', res.headers);
+
+		res.on('data', (d) => {
+			process.stdout.write(d);
+			log(d);
+		});
+	});
+
+	req.on('error', (e) => {
+		console.error(e);
+	});
+
+	req.write(_data);
+	req.end();
+};
 
 
 
