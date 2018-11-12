@@ -115,17 +115,17 @@ module.exports = {
 	},
 	lat:function(inValue){
 		_latitude = inValue;
-		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
+		if (_latitude != undefined && _longitude!= undefined && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
 	},
 	lon:function(inValue){
 		_longitude = inValue;
-		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
+		if (_latitude != undefined && _longitude!= undefined && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
 	},
 	height:function(inValue){
 		_height = inValue;
-		if (_latitude != undefined && _longitude!= undefined, && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
+		if (_latitude != undefined && _longitude!= undefined && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
 	},
 	dd:function(inValue){
