@@ -1,5 +1,5 @@
 /*
-** Module: openiod-fiware-validate-josene.js
+** Module: openiod-fiware-controller-josene.js
 **  Module to validate and convert source data
 **
 **
@@ -8,7 +8,7 @@
 
 /*
 
-Id: openiod-fiware-validate-josene
+Id: openiod-fiware-controller-josene
 Module as part of the generic connector to enable pull services and to connect external services with Fiware Context broker.
 This module validates and transforms attribute from the external system Josene https://josene.intemo.com/docs/index.html 
 

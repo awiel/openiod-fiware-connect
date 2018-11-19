@@ -1,5 +1,5 @@
 /*
-** Module: openiod-fiware-validate-knmi.js
+** Module: openiod-fiware-controller-knmi.js
 **  Module to validate and convert source data
 **
 **
@@ -8,7 +8,7 @@
 
 /*
 
-Id: openiod-fiware-validate-knmi
+Id: openiod-fiware-controller-knmi
 Module as part of the generic connector to enable pull services and to connect external services with Fiware Context broker.
 This module validates and transforms attribute from the external system knmi https://data.knmi.nl provided by (Scapeler) SCAPE604/knmi-data/knmi-import.sh
 

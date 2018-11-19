@@ -20,7 +20,7 @@
       },
       "source": {
         "name": "josene",
-        "validate":"openiod-fiware-validate-{{validation procedure}}",
+        "controller":"openiod-fiware-controller-{{controller procedure}}",
         "method": "GET",
         "protocol": "https",
         "host": "{{hostname}}",

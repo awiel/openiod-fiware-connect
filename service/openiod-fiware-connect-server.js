@@ -85,7 +85,7 @@ var _service;
 var _source;
 var _sourceIdMap;
 var _sourceAttributeMap;
-var _sourceValidate;
+var _sourceController;
 var _sourceCopyTarget;
 var _target;
 var self;
@@ -140,23 +140,23 @@ var processResult = function(result){
 			sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
 		}
 
-		if (_sourceValidate) {
-			_sourceValidate.init(_service,_openIoDConfig,sourceData);
+		if (_sourceController) {
+			_sourceController.init(_service,_openIoDConfig,sourceData);
 		}
 		for (var m=0;m<_sourceAttributeMap.length;m++){
 			var _map 						= _sourceAttributeMap[m];
 			var fiwareObject 		= {};
-			if (_sourceValidate.getDefaults) {
-				_sourceValidate.setDefaults();
-				fiwareObject = _sourceValidate.getDefaults();
+			if (_sourceController.getDefaults) {
+				_sourceController.setDefaults();
+				fiwareObject = _sourceController.getDefaults();
 			}
 			for (var attribute in _map.attributes){
 				var targetAttribute		=_map.attributes[attribute];
 				if(sourceData[attribute]){
 					var _attr = sourceData[attribute];
-					if(_sourceValidate[attribute]) {
+					if(_sourceController[attribute]) {
 //							console.log(' Validation for attribute '+ attribute);
-						var targetValue = _sourceValidate[attribute](sourceData[attribute]);
+						var targetValue = _sourceController[attribute](sourceData[attribute]);
 						if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
 //							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
 //							console.dir(fiwareObject[targetAttribute]);
@@ -260,8 +260,8 @@ module.exports = {
 		_source 						= service.source;
 		_sourceIdMap 				= _source.idMap;
 		_sourceAttributeMap = _source.attributeMap;
-		if (_source.validate) {
-			_sourceValidate 	= require(__dirname+'/../validate/'+_source.validate);
+		if (_source.controller) {
+			_sourceController 	= require(__dirname+'/../controller/'+_source.controller);
 		}
 		_sourceCopyTarget		= service.sourceCopyTarget;
 		_target							= service.target;
