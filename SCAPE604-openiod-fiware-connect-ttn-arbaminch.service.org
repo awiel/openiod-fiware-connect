@@ -2,7 +2,7 @@
 Desription=SCAPE604-apri-sensor-connector - start or restart apri-sensor-connector service, respawn
 After=network.target
 [Service]
-ExecStart=/opt/SCAPE604/apri-sensor/apri-sensor-connector/apri-sensor-connect-ttn-arbaminch.sh /opt/SCAPE604/log/SCAPE604-apri-sensor-connect-ttn-arbaminch.log
+ExecStart=/opt/SCAPE604/openiod-fiware-connect/openiod-fiware-connect-ttn-arbaminch.sh /opt/SCAPE604/log/SCAPE604-apri-sensor-connect-ttn-arbaminch.log
 Restart=always
 
 [Install]
