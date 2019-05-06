@@ -35,7 +35,12 @@ argv.command						= process.argv[2]; // push or pull
 argv.serviceName				= process.argv[3]; // service name e.g. josene or vtec
 var argvFois            = process.argv[4]; // parameter for feature of interest(s)
 if (argvFois) {
-  argv.fois               = JSON.parse(argvFois.substr(4));
+  try {
+    argv.fois               = JSON.parse(argvFois);
+  }
+  catch(error){
+    console.log('No json parameter for fois. '+argvFois.substr(4));
+  }
 }
 
 var main_module 				= 'openiod-fiware-connect';
@@ -79,9 +84,27 @@ function resolveAfter2Seconds(time) {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve('resolved service at '+ new Date());
-      asyncCall();
       log('calling service');
-      serviceCache[_service.name].init(_service,openIoDConfig);
+      var processCycle = openIoDConfig.getProcessCycle();
+      if (processCycle) {
+        console.dir(processCycle);
+        if (processCycle.endCycleDate < processCycle.endDate) {
+          processCycle.startCycleDate   = new Date(processCycle.endCycleDate.getTime()+1); // new cycle continues where previous cycle has ended
+          processCycle.endCycleDate     = new Date(processCycle.endCycleDate.getTime()+ 2*60*60*1000); // 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
+          if (processCycle.endCycleDate> processCycle.endDate){
+            processCycle.endCycleDate   = new Date(processCycle.endDate.getTime());
+          } else {
+            asyncCall();  // activate next cycle in wait state
+          }
+          openIoDConfig.setProcessCycle(processCycle);
+          serviceCache[_service.name].init(_service,openIoDConfig);
+        } else {
+          log("Cycles completed, process end.")
+        }
+      } else {
+        asyncCall();  // activate next cycle in wait state
+        serviceCache[_service.name].init(_service,openIoDConfig);
+      }
     }, time);
   });
 }
@@ -106,7 +129,7 @@ var errorMessages = {
 	, URLERROR 					: { "message": 'URL incorrect'					, "returnCode": 501 }
 	, NOFOI 						: { "message": 'Feature of Interest missing'	, "returnCode": 501 }
 	, NOMODEL 					: { "message": 'MODEL parameter missing'		, "returnCode": 501 }
-	, NOARGVCOMMAND			: { "message": 'ERROR: Commandline argument command is missing or incorrect (push/pull/serve)'		, "returnCode": -1 }
+	, NOARGVCOMMAND			: { "message": 'ERROR: Commandline argument command is missing or incorrect (push/pull/serve/ttn)'		, "returnCode": -1 }
 	, NOARGVSERVICE			: { "message": 'ERROR: Commandline argument service is missing or unknown in this setting'		, "returnCode": -1 }
 }
 
@@ -139,6 +162,16 @@ var executeService = function() {
 	}
 
   log('calling service 1e time');
+  if (argv.fois && argv.fois[0].startDate && argv.fois[0].endDate) {
+    var _foi = argv.fois[0];
+    log("Set processcycle");
+    var processCycle = {};
+    processCycle.startDate = new Date(_foi.startDate);
+    processCycle.endDate = new Date(_foi.endDate);
+    processCycle.startCycleDate = new Date(_foi.startDate);
+    processCycle.endCycleDate = new Date(processCycle.startCycleDate.getTime() + 2*60*60*1000);  //process 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
+    _service.source.processCycle = processCycle;
+  }
   serviceCache[_service.name].init(_service,openIoDConfig);
   if (_service.procedure.repeat && _service.procedure.repeat.wait) {
     asyncCall(); // repeat service every 'wait'-time.
@@ -148,7 +181,7 @@ var executeService = function() {
 };
 
 
-if (argv.command != 'push' && argv.command != 'pull' && argv.command != 'serve') {
+if (argv.command != 'push' && argv.command != 'pull' && argv.command != 'serve' && argv.command != 'transfer' && argv.command != 'ttn') {
 	console.error(errorMessages.NOARGVCOMMAND.message);
 	return errorMessages.NOARGVCOMMAND.returnCode;
 }
@@ -157,8 +190,9 @@ if (argv.serviceName == undefined) {
 	console.error(errorMessages.NOARGVSERVICE.message);
 	return errorMessages.NOARGVSERVICE.returnCode;
 }
-
+console.dir(argv);
 _service = openIoDConfig.getConfigService(argv.serviceName);
+console.dir(_service);
 _service.name= argv.serviceName;
 if (_service == undefined) {
 	console.error(errorMessages.NOARGVSERVICE.message);

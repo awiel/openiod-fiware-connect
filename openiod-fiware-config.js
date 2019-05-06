@@ -55,7 +55,8 @@
 		systemVersionL1,
 		systemVersionL2,
 		systemVersionL3,
-		localService;
+		localService,
+		localServiceContent;
 
 		module.exports = {
 
@@ -76,8 +77,8 @@
 				systemBaseCode 						= path.basename(systemFolderParent);
 				argv											= runtime_argv;
 
-				systemConfigLocalPath 		= systemFolder; //systemFolderParent +'/config/';
-				systemConfigStr 					= fs.readFileSync(systemConfigLocalPath + "/openiod-fiware-config.json");
+				systemConfigLocalPath 		= systemFolderParent +'/config/';
+				systemConfigStr 					= fs.readFileSync(systemConfigLocalPath + "openiod-fiware-config-"+argv.command+"-"+argv.serviceName+".json");
 				systemConfig 							= JSON.parse(systemConfigStr);
 
 				// IMPORTANT: SYSTEM CONFIGURATION VALUES !!!
@@ -96,6 +97,8 @@
 
 				// service(s)
 				localService							= systemConfig.service;
+				localServiceContent				= systemConfig.service[argv.serviceName];
+				//console.dir(localService);
 
 				// Parameters
 				parameter									= systemConfig.parameter;
@@ -131,6 +134,7 @@
 				log(' System config folder    : ' + systemConfigLocalPath);
 				log(' System Main modulename  : ' + systemMainModuleName);
 				log(' Runtime command         : ' + argv.command);
+				log(' Service                 : ' + argv.serviceName);
 				log(' Servicetype             : ' + systemServiceType);
 				log(' Listening port          : ' + systemListenPort);
 				log(' System start            : ' + systemStart.toISOString());
@@ -203,7 +207,14 @@
 
 			getArgv: function() {
 				return argv;
-			}
+			},
 
+			setProcessCycle: function(processCycle) {
+				console.log(localServiceContent);
+				localServiceContent.source.processCycle = processCycle;
+			},
+			getProcessCycle: function() {
+				return localServiceContent.source.processCycle;
+			}
 
 		} // end of module.exports

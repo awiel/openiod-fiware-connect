@@ -1,0 +1,79 @@
+{
+  "system": {
+    "systemName": "openiod-fiware-connect",
+    "systemCode": "SCAPE604",
+    "systemListenPort": "5000",
+    "serviceType": "openiod-fiware",
+    "versionStr": "",
+    "version": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 1
+    }
+  },
+  "service": {
+    "ttn": {
+      "procedure": {
+        "name": "default ttn",
+        "module": "openiod-fiware-connect-ttn"
+      },
+      "source": {
+        "name": "ttn",
+        "controller": "openiod-fiware-controller-ttn",
+        "method": "ttn",
+        "appId": "appId",
+        "accessKey": "accessKey",
+        "devIds": {
+          "devId-1":false,
+          "devId-2":true
+        },
+        "info": "https://www.scapeler.com",
+        "idMap": {
+          "id": "station",
+          "entityTime": "time"
+        },
+        "attributeMap": [
+          {
+            "targetType": "WeatherObserved",
+            "targetIdPrefix": "ttn_",
+            "attributes": {
+              "station": "station",
+              "time": "dateObserved",
+              "stationName": "name",
+              "source": "https://data.ttn.nl",
+              "lat": "location",
+              "lon": "location",
+              "pm1": "pm1",
+              "pm25": "pm25",
+              "pm10": "pm10"
+            }
+          }
+        ]
+      },
+      "target": {
+        "name": "contextBroker",
+        "active": true,
+        "method": "POST",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "443",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path": "",
+        "FiwareService": "aprisensor_in",
+        "FiwareServicePath": "/ttn",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ]
+      }
+    }
+  },
+  "parameter": {
+
+  },
+  "modules": [
+
+  ]
+}
