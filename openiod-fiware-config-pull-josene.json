@@ -1,0 +1,217 @@
+{
+  "system": {
+    "systemName": "openiod-fiware-connect",
+    "systemCode": "SCAPE604",
+    "systemListenPort": "5000",
+    "serviceType": "openiod-fiware",
+    "versionStr": "",
+    "version": {
+      "l1": 0,
+      "l2": 0,
+      "l3": 1
+    }
+  },
+  "service": {
+    "josene": {
+      "procedure": {
+        "name": "default pull",
+        "module": "openiod-fiware-connect-pull",
+        "repeat": {
+          "wait": 60000
+        }
+      },
+      "source": {
+        "name": "josene",
+        "controller": "openiod-fiware-controller-josene",
+        "method": "GET",
+        "protocol": "https",
+        "host": "josene.intemo.com",
+        "port": "443",
+        "prefixPath": "/sensors/v1.2",
+        "path": "/devices/last/",
+        "suffixPath": "",
+        "token": "WkT62FwNiaTcoFJOzeQ9",
+        "info": "https://josene.intemo.com/docs/index.html",
+        "idMap": {
+          "id": "id",
+          "entityTime": "time"
+        },
+        "attributeMap": [
+          {
+            "targetType": "AirQualityObserved",
+            "targetIdPrefix": "Air_",
+            "attributes": {
+              "id": "sensorId",
+              "time": "dateObserved",
+              "s_barometer": "airPressure",
+              "s_temperatureambient": "temperature",
+              "s_co2": "CO2",
+              "s_latitude": "location",
+              "s_longitude": "location",
+              "s_no2": "NO2",
+              "s_pm10": "PM10",
+              "s_pm2_5": "PM25",
+              "s_humidity": "relativeHumidity",
+              "s_temperatureunit": "unitTemperature"
+            }
+          },
+          {
+            "targetType": "SoundObserved",
+            "targetIdPrefix": "Sound_",
+            "attributes": {
+              "id": "sensorId",
+              "time": "dateObserved",
+              "s_latitude": "location",
+              "s_longitude": "location",
+              "v_audio_total": "soundLevel"
+            }
+          }
+        ]
+      },
+      "target": {
+        "name": "contextBroker",
+        "active": true,
+        "method": "POST",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "443",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path": "",
+        "FiwareService": "aireas_ehv_nue",
+        "FiwareServicePath": "/josene",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ],
+        "entityTimeConfig": {
+          "round": "UP",
+          "trunc": "minute"
+        },
+        "type": "targetType"
+      },
+      "sourceCopyTarget": {
+        "name": "contextBroker",
+        "active": false,
+        "method": "POST",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "443",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path": "",
+        "FiwareService": "aireas_ehv_nue_sourceCopy",
+        "FiwareServicePath": "/josene"
+      },
+      "errorTarget": {
+        "name": "contextBroker",
+        "protocol": "https",
+        "host": "aireas_fiware_cb.openiod.nl",
+        "port": "",
+        "prefixPath": "/",
+        "FiwareService": "aireas_ehv_nue_error",
+        "FiwareServicePath": "/josene",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ],
+        "type": "targetType"
+      }
+    },
+    "knmi": {
+      "procedure": {
+        "name": "default server",
+        "module": "openiod-fiware-connect-server"
+      },
+      "source": {
+        "name": "knmi",
+        "controller": "openiod-fiware-controller-knmi",
+        "method": "GET",
+        "protocol": "https",
+        "host": "localhost",
+        "port": "5000",
+        "route": "/knmi",
+        "info": "https://www.scapeler.com",
+        "idMap": {
+          "id": "station",
+          "entityTime": "time"
+        },
+        "attributeMap": [
+          {
+            "targetType": "WeatherObserved",
+            "targetIdPrefix": "knmi_",
+            "attributes": {
+              "station": "station",
+              "time": "dateObserved",
+              "stationName": "name",
+              "source": "https://data.knmi.nl",
+              "lat": "location",
+              "lon": "location",
+              "height": "location",
+              "dd": "windDirection",
+              "ff": "windSpeed",
+              "pp": "atmosphericPressure",
+              "D1H": "rainDuration",
+              "R1H": "rainfall",
+              "ta": "temperature",
+              "rh": "relativeHumidity"
+            }
+          }
+        ]
+      },
+      "target": {
+        "name": "contextBroker",
+        "active": true,
+        "method": "POST",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "443",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path": "",
+        "FiwareService": "aireas_ehv_nue",
+        "FiwareServicePath": "/knmi",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ]
+      },
+      "sourceCopyTarget": {
+        "name": "contextBroker",
+        "active": false,
+        "method": "POST",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "443",
+        "prefixPath": "/v2/entities?options=keyValues",
+        "path": "",
+        "FiwareService": "aireas_ehv_nue_sourceCopy",
+        "FiwareServicePath": "/knmi"
+      },
+      "errorTarget": {
+        "name": "contextBroker",
+        "protocol": "https",
+        "host": "orion.openiod.nl",
+        "port": "",
+        "prefixPath": "/",
+        "FiwareService": "aireas_ehv_nue_error",
+        "FiwareServicePath": "/knmi",
+        "id": [
+          "targetIdPrefix",
+          "id",
+          "_",
+          "entityTime"
+        ]
+      }
+    }
+  },
+  "parameter": {
+
+  },
+  "modules": [
+
+  ]
+}

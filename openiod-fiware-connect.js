@@ -30,26 +30,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 "use strict";
 
-var argv								= {}
-argv.command						= process.argv[2]; // push or pull
-argv.serviceName				= process.argv[3]; // service name e.g. josene or vtec
-var argvFois            = process.argv[4]; // parameter for feature of interest(s)
-if (argvFois) {
-  try {
-    argv.fois               = JSON.parse(argvFois);
-  }
-  catch(error){
-    console.log('No json parameter for fois. '+argvFois.substr(4));
-  }
-}
-
 var main_module 				= 'openiod-fiware-connect';
 //console.log("Path: " + main_module);
 //var modulePath 					= require('path').resolve(__dirname, 'node_modules/openiod-fiware/../..');
 var modulePath 					= __dirname;
 //console.log("Modulepath: " + modulePath);
 var openIoDConfig 			= require(modulePath + '/openiod-fiware-config');
-openIoDConfig.init(main_module, argv);
 
 var self = this;
 
@@ -79,18 +65,38 @@ var serviceCache	= {};
 var log = function(message){
 	console.log(new Date().toISOString()+' | '+message);
 }
+var logDir = function(object){
+	console.dir(object);
+}
 
-function resolveAfter2Seconds(time) {
+var argv								= {}
+argv.command						= process.argv[2]; // push or pull
+argv.serviceName				= process.argv[3]; // service name e.g. josene or vtec
+var argvFois            = process.argv[4]; // parameter for feature of interest(s)
+var paramKey    = argvFois.split('=')[0]
+if (paramKey=='foi') {
+  try {
+    var paramValue = argvFois.substr(4);
+    argv.fois      = JSON.parse(paramValue);
+  }
+  catch(error){
+    log('No json parameter for fois. '+argvFois.substr(4));
+    return;
+  }
+}
+openIoDConfig.init(main_module, argv);
+
+function resolveAfterWaitTime(time) {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve('resolved service at '+ new Date());
       log('calling service');
       var processCycle = openIoDConfig.getProcessCycle();
       if (processCycle) {
-        console.dir(processCycle);
+        //console.dir(processCycle);
         if (processCycle.endCycleDate < processCycle.endDate) {
           processCycle.startCycleDate   = new Date(processCycle.endCycleDate.getTime()+1); // new cycle continues where previous cycle has ended
-          processCycle.endCycleDate     = new Date(processCycle.endCycleDate.getTime()+ 2*60*60*1000); // 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
+          processCycle.endCycleDate     = new Date(processCycle.endCycleDate.getTime()+ _service.procedure.repeat.cycleTime); // 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
           if (processCycle.endCycleDate> processCycle.endDate){
             processCycle.endCycleDate   = new Date(processCycle.endDate.getTime());
           } else {
@@ -110,7 +116,7 @@ function resolveAfter2Seconds(time) {
 }
 
 async function asyncCall() {
-  var result = await resolveAfter2Seconds(_service.procedure.repeat.wait);
+  var result = await resolveAfterWaitTime(_service.procedure.repeat.wait);
   log('Service end: '+result);
 }
 
@@ -162,19 +168,25 @@ var executeService = function() {
 	}
 
   log('calling service 1e time');
+  //logDir(argv)
   if (argv.fois && argv.fois[0].startDate && argv.fois[0].endDate) {
     var _foi = argv.fois[0];
     log("Set processcycle");
+    logDir(_foi)
     var processCycle = {};
     processCycle.startDate = new Date(_foi.startDate);
     processCycle.endDate = new Date(_foi.endDate);
     processCycle.startCycleDate = new Date(_foi.startDate);
-    processCycle.endCycleDate = new Date(processCycle.startCycleDate.getTime() + 2*60*60*1000);  //process 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
+    processCycle.endCycleDate = new Date(processCycle.startCycleDate.getTime() + _service.procedure.repeat.cycleTime - 1);
+		processCycle.cycleTime = _service.procedure.repeat.cycleTime;
+    //process (2x?) 60 minutes per cycle. normal 3 hours, luchtmeetnet per hour!
     _service.source.processCycle = processCycle;
+    logDir(processCycle)
   }
   serviceCache[_service.name].init(_service,openIoDConfig);
   if (_service.procedure.repeat && _service.procedure.repeat.wait) {
-    asyncCall(); // repeat service every 'wait'-time.
+		// repeat service every 'wait'-time.
+    asyncCall();
   }
 
 	return;
@@ -190,9 +202,9 @@ if (argv.serviceName == undefined) {
 	console.error(errorMessages.NOARGVSERVICE.message);
 	return errorMessages.NOARGVSERVICE.returnCode;
 }
-console.dir(argv);
+//console.dir(argv);
 _service = openIoDConfig.getConfigService(argv.serviceName);
-console.dir(_service);
+//console.dir(_service);
 _service.name= argv.serviceName;
 if (_service == undefined) {
 	console.error(errorMessages.NOARGVSERVICE.message);

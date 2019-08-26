@@ -10,7 +10,7 @@
 
 Id: openiod-fiware-controller-josene
 Module as part of the generic connector to enable pull services and to connect external services with Fiware Context broker.
-This module validates and transforms attribute from the external system Josene https://josene.intemo.com/docs/index.html 
+This module validates and transforms attribute from the external system Josene https://josene.intemo.com/docs/index.html
 
 Copyright (C) 2018  André van der Wiel / Scapeler http://www.scapeler.com
 
@@ -53,6 +53,9 @@ var _defaults;
 var log = function(message){
 	console.log(new Date().toISOString()+' | '+message);
 }
+var logDir = function(object){
+	console.dir(object);
+}
 
 var milliKelvinToCelsius = function(n){
 	return Math.round((n/1e3-273.15)*100)/100
@@ -81,6 +84,11 @@ var _co2 = {"value":undefined,"metadata":{"unitCode":{"value":"59"}}}; // 59=ppm
 var getCo2 = function(value) {
 	_co2.value = value;
 	return _co2;
+};
+var _pm1 = {"value":undefined,"metadata":{"unitCode":{"value":"GQ"}}}; // GQ=micrograms per cubic meter
+var getPm1 = function(value) {
+	_pm1.value = value;
+	return _pm1;
 };
 var _pm25 = {"value":undefined,"metadata":{"unitCode":{"value":"GQ"}}}; // GQ=micrograms per cubic meter
 var getPm25 = function(value) {
@@ -160,6 +168,9 @@ module.exports = {
 	},
 	s_no2:function(n){
 		return n;
+	},
+	s_pm1:function(n){
+		return getPm1(n/1000);
 	},
 	s_pm10:function(n){
 		return getPm10(n/1000);

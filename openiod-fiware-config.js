@@ -58,6 +58,13 @@
 		localService,
 		localServiceContent;
 
+		var log = function(message){
+			console.log(new Date().toISOString()+' | '+message);
+		}
+		var logDir = function(object){
+			console.dir(object);
+		}
+
 		module.exports = {
 
 			init: function (name,runtime_argv) {
@@ -102,10 +109,6 @@
 
 				// Parameters
 				parameter									= systemConfig.parameter;
-
-				var log = function(message){
-					console.log(new Date().toISOString()+' | '+message);
-				}
 
 				// module overrules default config
 				if (systemConfig.modules) {
@@ -210,7 +213,7 @@
 			},
 
 			setProcessCycle: function(processCycle) {
-				console.log(localServiceContent);
+				//console.log(localServiceContent);
 				localServiceContent.source.processCycle = processCycle;
 			},
 			getProcessCycle: function() {

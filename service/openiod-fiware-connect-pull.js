@@ -78,6 +78,17 @@ var self;
 var log = function(message){
 	console.log(new Date().toISOString()+' | '+message);
 }
+var logDir = function(object){
+	console.dir(object);
+}
+var clone = function(obj) {
+    if (null == obj || "object" != typeof obj) return obj;
+    var copy = obj.constructor();
+    for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
+}
 /*
 var formatDate = function(date) {
 	var obj 							= {}
@@ -130,12 +141,15 @@ module.exports = {
 		this.getData();
 	},
 	getData:function(){
+		log('getData')
 		var fois = _openIoDConfig.getArgv().fois;
 		var params = '';
+		//logDir(_openIoDConfig)
+		//log(fois)
 		for (var i=0;i<fois.length;i++) {
 			var foi = fois[i];
 			if (i==0) {
-				params = foi.id;
+				params = ""+foi.id;
 			} else {
 				params = params + ',' + foi.id;
 			}
@@ -144,38 +158,88 @@ module.exports = {
 
 		var options = {
   		hostname: _source.host,
+			foiId : fois[0].id,
   		port: _source.port,
   		path: path,
   		method: _source.method,
 			headers: { 'Authorization': 'Bearer '+_source.token
 					, 'content-type': 'application/json; charset=utf-8' } //'Accept-Encoding': 'gzip,deflate',
 		};
-		this.getHttps(options, this.processResult);
+
+		if (_source.suffixPath == '/timeseries') {
+			logDir(_service.source.processCycle)
+			//for (_service.source.processCycle.startDate < _service.source.processCycle.endDate) {
+				var m=''+(_service.source.processCycle.startCycleDate.getUTCMonth()+1)
+				if (m.length==1) {
+					m='0'+m
+				}
+				var d=''+(_service.source.processCycle.startCycleDate.getUTCDate())
+				if (d.length==1) {
+					d='0'+d
+				}
+				var _parmHour = _service.source.processCycle.startCycleDate.getUTCHours()+1;
+				options.path = path + '/' +
+					_service.source.processCycle.startCycleDate.getUTCFullYear() +
+					m +
+					d +
+					'/' + _parmHour  // for Josene parameter UTC hour + 1 (1-24)
+					this.getHttps(options, this.processResult);
+			//}
+		} else {
+			this.getHttps(options, this.processResult);
+		}
+
 	},
 	getHttps:function(options, callback){
 		log('Service: '+_service.name+' retrieve source data.')
+		logDir(options)
+		var result='';
 		https.get(options, (res) => {
 		  log('statusCode:'+ res.statusCode);
 		  //log('headers:', res.headers);
 		  res.on('data', (d) => {
 		    //process.stdout.write(d);
-				log('Service: '+_service.name+' data retrieved.')
-				callback(d.toString());
+				//log('Service data: '+_service.name+' data retrieved.')
+				result=result+d
+				//callback(d.toString());
+		  });
+			res.on('end', (d) => {
+		    //process.stdout.write(d);
+				log('Service end: '+_service.name+' data retrieved.')
+				callback(result.toString(),options);
 		  });
 		}).on('error', (e) => {
 			log('Service: '+_service.name+' data retrieve error.')
 		  console.error(e);
 		});
 	},
-	processResult:function(result){
-		var _result = JSON.parse(result);
-//		console.log(_result);
+	processResult:function(result,options){
+		log('processResult')
+		log(result.substr(0,5000))
+		var _resultJson = JSON.parse(result);
+		var _result=''
+		// josene timeseries?
+		var joseneHist=false
+		if (_resultJson.date!=undefined & _resultJson.hour!=undefined & _resultJson.timeseries!=undefined) {
+			log(_resultJson.date +' '+ _resultJson.hour +' '+ _resultJson.timeseries.length)
+			_result=_resultJson.timeseries
+			joseneHist=true
+		} else {
+			_result=_resultJson
+		}
+		//logDir(_result)
+		logDir(_result[0])
+		log('Number of timeseries in this hour: ' + _result.length);
 		for (var i=0;i<_result.length;i++){
 			var sourceData 				= _result[i];
 			var _attributeId 			= _sourceIdMap["id"];
 			var _attributeDateTime= _sourceIdMap["entityTime"];
 			var _id 							= sourceData[_attributeId];
 			var _dateTime 				= sourceData[_attributeDateTime];
+			if (joseneHist == true) {
+				_id 			= 'J'+options.foiId
+				sourceData.id = _id
+			}
 			var _key 							= _id+'_'+_dateTime;
 			if (_sourceCopyTarget && _sourceCopyTarget.active){
 				self.sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
@@ -185,6 +249,7 @@ module.exports = {
 				_sourceController.init(_service,_openIoDConfig,sourceData);
 			}
 			for (var m=0;m<_sourceAttributeMap.length;m++){
+				if (m==1) continue
 				var _map 						= _sourceAttributeMap[m];
 				var fiwareObject 		= {};
 				if (_sourceController.getDefaults) {
@@ -196,11 +261,15 @@ module.exports = {
 					if(sourceData[attribute]){
 						var _attr = sourceData[attribute];
 						if(_sourceController[attribute]) {
-//							console.log(' Validation for attribute '+ attribute);
 							var targetValue = _sourceController[attribute](sourceData[attribute]);
+							//if (attribute=='s_pm2_5') {
+								//log(' Validation for attribute '+ attribute+ ' value: ' );
+								//logDir(targetAttribute)
+								//logDir(targetValue)
+							//}
 							if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
 //							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
-//							console.dir(fiwareObject[targetAttribute]);
+//							logDir(fiwareObject[targetAttribute]);
 						} else {
 							log(' No validation for attribute '+ attribute);
 							fiwareObject[targetAttribute]=sourceData[attribute];
@@ -223,6 +292,10 @@ module.exports = {
 							fiwareObject.type		=_map.targetType;
 						}
 					}
+					log('yyyyyyyyyyyyyyyyyyyy')
+					//var fiwareObjectClone = clone(fiwareObject)
+					logDir(fiwareObject)
+					//setTimeout(self.sendToTarget,i*200,fiwareObjectClone, _target)
 					self.sendToTarget(fiwareObject, _target);
 				}
 
@@ -236,23 +309,31 @@ module.exports = {
 		fiwareObject.id = _key;
 		fiwareObject.type = 'sourceAttributes';
 		fiwareObject.content = data;
-//		console.log(fiwareObject);
 		self.sendToTarget(fiwareObject,target);
 	},
 	sendToTarget: function(fiwareObject,target) {
-		//console.log(fiwareObject);
-		//console.log(target);
+		var _fiwareObject = fiwareObject
+		//log(fiwareObject);
+		//log(target);
 		if (target.name=='contextBroker') {
-			self.postDataContextBroker(fiwareObject,target)
+			self.postDataContextBroker(_fiwareObject,target)
 		}
 	},
 	postDataContextBroker:function(fiwareObject,target){
-		log('POST data '+target.name+' '+target.host+':'+target.FiwareService+target.FiwareServicePath+' id:'+fiwareObject.id+' type:'+fiwareObject.type);
+		var _fiwareObject = fiwareObject
+		log('POST data '+target.name+' '+target.host+':'+target.FiwareService+target.FiwareServicePath+' id:'+_fiwareObject.id+' type:'+_fiwareObject.type);
 //		var postData = {};
 //		postData.id = fiwareObject.id;
 //		postData.type = fiwareObject.type;
 //		postData.content = fiwareObject.sourceAttributes;
-		var _data = JSON.stringify(fiwareObject);
+		log('xxxxxxxxxxxxxxxxxx')
+    logDir(_fiwareObject)
+    if (_fiwareObject.PM25 != undefined) {
+			log('2xxxxxxxxxxxxxxxxx')
+			log(_fiwareObject.PM25.value)
+		}
+		var _data = JSON.stringify(_fiwareObject);
+
 
 		var options = {
 		  hostname: target.host,

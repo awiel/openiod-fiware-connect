@@ -29,11 +29,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 "use strict";
 // **********************************************************************************
 // add module specific requires
-var https 			= require('https');
+var https 			        = require('https');
 
-const express = require('express');
-const path = require('path');
-const app = express();
+var   axios 							= require('axios');
+const express           = require('express');
+const path              = require('path');
+const app               = express();
 //const PORT = process.env.PORT || 5000;
 
 app.use(express.json())
@@ -126,72 +127,7 @@ var formatDate = function(date) {
 }
 */
 
-var processResult = function(result){
-	var _result = result; //JSON.parse(result);
-//	console.log(_result);
-	for (var i=0;i<_result.length;i++){
-		var sourceData 				= _result[i];
-		var _attributeId 			= _sourceIdMap["id"];
-		var _attributeDateTime= _sourceIdMap["entityTime"];
-		var _id 							= sourceData[_attributeId];
-		var _dateTime 				= sourceData[_attributeDateTime];
-		var _key 							= _id+'_'+_dateTime;
-		if (_sourceCopyTarget && _sourceCopyTarget.active){
-			sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
-		}
 
-		if (_sourceController) {
-			_sourceController.init(_service,_openIoDConfig,sourceData);
-		}
-		for (var m=0;m<_sourceAttributeMap.length;m++){
-			var _map 						= _sourceAttributeMap[m];
-			var fiwareObject 		= {};
-			if (_sourceController.getDefaults) {
-				_sourceController.setDefaults();
-				fiwareObject = _sourceController.getDefaults();
-			}
-			for (var attribute in _map.attributes){
-				var targetAttribute		=_map.attributes[attribute];
-				if(sourceData[attribute]){
-					var _attr = sourceData[attribute];
-					if(_sourceController[attribute]) {
-//							console.log(' Validation for attribute '+ attribute);
-						var targetValue = _sourceController[attribute](sourceData[attribute]);
-						if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
-//							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
-//							console.dir(fiwareObject[targetAttribute]);
-					} else {
-						log(' No validation for attribute '+ attribute);
-						fiwareObject[targetAttribute]=sourceData[attribute];
-					}
-				}
-			}
-
-			if (_target && _target.active){
-				if (_target.entityTimeConfig){
-					var _tmpDateTime = new Date(_dateTime);
-					if (_target.entityTimeConfig.round=='UP' && _target.entityTimeConfig.trunc=='minute') {
-						_tmpDateTime = new Date(_tmpDateTime.getTime()+59999);
-						fiwareObject.entityTime = new Date(_tmpDateTime.getFullYear(),_tmpDateTime.getMonth(),_tmpDateTime.getDate()
-												,_tmpDateTime.getHours(),_tmpDateTime.getMinutes()).toISOString();
-						fiwareObject.id			=_map.targetIdPrefix+_id+'_'+fiwareObject.entityTime;
-						fiwareObject.type		=_map.targetType;
-					}	else {
-						fiwareObject.entityTime = _dateTime;
-						fiwareObject.id			=_map.targetIdPrefix+_key;
-						fiwareObject.type		=_map.targetType;
-					}
-				} else {
-					fiwareObject.entityTime = _dateTime;
-					fiwareObject.id			=_map.targetIdPrefix+_key;
-					fiwareObject.type		=_map.targetType;
-				}
-				sendToTarget(fiwareObject, _target);
-			}
-
-		}
-	}
-};
 
 var sendToSourceCopyTarget = function(id,data,target) {
 	console.log('Todo: sendToSourceCopyTarget');
@@ -249,7 +185,7 @@ var postDataContextBroker = function(fiwareObject,target){
 
 };
 
-
+var self = this;
 
 module.exports = {
 	init: function(service,openIoDConfig) {
@@ -260,18 +196,121 @@ module.exports = {
 		_source 						= service.source;
 		_sourceIdMap 				= _source.idMap;
 		_sourceAttributeMap = _source.attributeMap;
-		if (_source.controller) {
+
+//		if (_source.controller) {
+//			_sourceController 	= require(__dirname+'/../controller/'+_source.controller);
+//		}
+
+
+    if (_source.controller) {
 			_sourceController 	= require(__dirname+'/../controller/'+_source.controller);
+			_sourceController.init(_service,_openIoDConfig);
+      console.dir(_sourceController);
+			if(_sourceController.processInputParameters) {
+        console.log('OK');
+				this.processInputParameters = _sourceController.processInputParameters;
+	    }
+      if(_sourceController.selectSource) {
+				this.selectSource = _sourceController.selectSource;
+	    }
+
+//			if(_sourceController.readData) {
+//				this.readData = _sourceController.readData;
+//			}
+			if(_sourceController.processResult) {
+				this.processResult = _sourceController.processResult;
+			}
+//			if(_sourceController.setArgv) {
+//				_sourceController.setArgv(_openIoDConfig.getArgv().fois);
+//			}
 		}
+
+
+
 		_sourceCopyTarget		= service.sourceCopyTarget;
 		_target							= service.target;
 
 		this.initRoutes();
 
-		log('listening to port: ' + _source.port);
-		app.listen(_source.port);
+		log('listening to port: ' + service.serviceListenPort);
+		app.listen(service.serviceListenPort);
 
 	},
+  selectSource: function(req){
+    console.log('default selectSource');
+    return {};
+  },
+
+  processInputParameters: function(req){
+    console.log('default processInputParameters');
+    return {};
+  },
+  processResult: function(result){
+  	var _result = result; //JSON.parse(result);
+  //	console.log(_result);
+  	for (var i=0;i<_result.length;i++){
+  		var sourceData 				= _result[i];
+  		var _attributeId 			= _sourceIdMap["id"];
+  		var _attributeDateTime= _sourceIdMap["entityTime"];
+  		var _id 							= sourceData[_attributeId];
+  		var _dateTime 				= sourceData[_attributeDateTime];
+  		var _key 							= _id+'_'+_dateTime;
+  		if (_sourceCopyTarget && _sourceCopyTarget.active){
+  			sendToSourceCopyTarget({"id":_id,"dateTime":_dateTime,"key":_key},sourceData, _sourceCopyTarget);
+  		}
+
+  		if (_sourceController) {
+  			_sourceController.init(_service,_openIoDConfig,sourceData);
+  		}
+  		for (var m=0;m<_sourceAttributeMap.length;m++){
+  			var _map 						= _sourceAttributeMap[m];
+  			var fiwareObject 		= {};
+  			if (_sourceController.getDefaults) {
+  				_sourceController.setDefaults();
+  				fiwareObject = _sourceController.getDefaults();
+  			}
+  			for (var attribute in _map.attributes){
+  				var targetAttribute		=_map.attributes[attribute];
+  				if(sourceData[attribute]){
+  					var _attr = sourceData[attribute];
+  					if(_sourceController[attribute]) {
+  //							console.log(' Validation for attribute '+ attribute);
+  						var targetValue = _sourceController[attribute](sourceData[attribute]);
+  						if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
+  //							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
+  //							console.dir(fiwareObject[targetAttribute]);
+  					} else {
+  						log(' No validation for attribute '+ attribute);
+  						fiwareObject[targetAttribute]=sourceData[attribute];
+  					}
+  				}
+  			}
+
+  			if (_target && _target.active){
+  				if (_target.entityTimeConfig){
+  					var _tmpDateTime = new Date(_dateTime);
+  					if (_target.entityTimeConfig.round=='UP' && _target.entityTimeConfig.trunc=='minute') {
+  						_tmpDateTime = new Date(_tmpDateTime.getTime()+59999);
+  						fiwareObject.entityTime = new Date(_tmpDateTime.getFullYear(),_tmpDateTime.getMonth(),_tmpDateTime.getDate()
+  												,_tmpDateTime.getHours(),_tmpDateTime.getMinutes()).toISOString();
+  						fiwareObject.id			=_map.targetIdPrefix+_id+'_'+fiwareObject.entityTime;
+  						fiwareObject.type		=_map.targetType;
+  					}	else {
+  						fiwareObject.entityTime = _dateTime;
+  						fiwareObject.id			=_map.targetIdPrefix+_key;
+  						fiwareObject.type		=_map.targetType;
+  					}
+  				} else {
+  					fiwareObject.entityTime = _dateTime;
+  					fiwareObject.id			=_map.targetIdPrefix+_key;
+  					fiwareObject.type		=_map.targetType;
+  				}
+  				sendToTarget(fiwareObject, _target);
+  			}
+
+  		}
+  	}
+  },
 
 initRoutes: function(){
   //console.log(_openIoDConfig);
@@ -319,9 +358,28 @@ initRoutes: function(){
 			result.entityTime = results.entityTime;
 			structuredResults.push(result);
 		}
-		processResult(structuredResults);
+		self.processResult(structuredResults);
 		res.send("Message received");
 	});
+
+  app.get('/openiod-fiware-connect/aggregate', function(req, res) {
+		console.log("openiod-fiware-connect/aggregate: " + req.url);
+    var params = self.processInputParameters(req);
+    if (params.err != undefined) {
+      res.send(params.err);
+      return;
+    }
+    console.dir(params);
+
+    self.selectSource(res,params.param, self.processResult);
+
+    //res.send(params);
+    return;
+
+//		self.processResult();
+//		res.send("Message received");
+	});
+
 
 }
 
