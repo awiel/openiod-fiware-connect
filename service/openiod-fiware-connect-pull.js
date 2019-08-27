@@ -74,6 +74,8 @@ var _sourceController;
 var _sourceCopyTarget;
 var _target;
 var self;
+var fiwareObjects = []
+var fiwareObjectsIndex = 0;
 
 var log = function(message){
 	console.log(new Date().toISOString()+' | '+message);
@@ -218,6 +220,7 @@ module.exports = {
 		log(result.substr(0,5000))
 		var _resultJson = JSON.parse(result);
 		var _result=''
+		var fiwareObject 		= {};
 		// josene timeseries?
 		var joseneHist=false
 		if (_resultJson.date!=undefined & _resultJson.hour!=undefined & _resultJson.timeseries!=undefined) {
@@ -228,8 +231,9 @@ module.exports = {
 			_result=_resultJson
 		}
 		//logDir(_result)
-		logDir(_result[0])
+		//logDir(_result[0])
 		log('Number of timeseries in this hour: ' + _result.length);
+		fiwareObjects = []
 		for (var i=0;i<_result.length;i++){
 			var sourceData 				= _result[i];
 			var _attributeId 			= _sourceIdMap["id"];
@@ -251,7 +255,7 @@ module.exports = {
 			for (var m=0;m<_sourceAttributeMap.length;m++){
 				if (m==1) continue
 				var _map 						= _sourceAttributeMap[m];
-				var fiwareObject 		= {};
+				fiwareObject 		= {};
 				if (_sourceController.getDefaults) {
 					_sourceController.setDefaults();
 					fiwareObject = _sourceController.getDefaults();
@@ -267,7 +271,8 @@ module.exports = {
 								//logDir(targetAttribute)
 								//logDir(targetValue)
 							//}
-							if (targetValue != undefined) fiwareObject[targetAttribute]=targetValue;
+							logDir(targetValue)
+							if (targetValue != undefined) fiwareObject[targetAttribute]=clone(targetValue);
 //							console.log('   Old / New value: '+ _attr + ' / ' + fiwareObject[targetAttribute]);
 //							logDir(fiwareObject[targetAttribute]);
 						} else {
@@ -292,15 +297,27 @@ module.exports = {
 							fiwareObject.type		=_map.targetType;
 						}
 					}
-					log('yyyyyyyyyyyyyyyyyyyy')
+					//log('yyyyyyyyyyyyyyyyyyyy')
 					//var fiwareObjectClone = clone(fiwareObject)
-					logDir(fiwareObject)
+					//logDir(fiwareObject)
+					fiwareObjects.push(fiwareObject)
 					//setTimeout(self.sendToTarget,i*200,fiwareObjectClone, _target)
-					self.sendToTarget(fiwareObject, _target);
+					//self.sendToTarget(fiwareObject, _target);
 				}
-
 			}
 		}
+//		logDir(fiwareObjects[0])
+//		logDir(fiwareObjects[1])
+//		return
+		fiwareObjectsIndex=0
+		self.processFiwareObjects()
+	},
+	processFiwareObjects: function(){
+		log('Process record: '+fiwareObjectsIndex+'/'+fiwareObjects.length)
+		var fiwareObject = fiwareObjects[fiwareObjectsIndex]
+		logDir(fiwareObjectsIndex)
+		logDir(fiwareObject)
+		self.sendToTarget(fiwareObject, _target);
 	},
 	sendToSourceCopyTarget: function(id,data,target) {
 		var _key ='source_'+id.key;
@@ -313,7 +330,7 @@ module.exports = {
 	},
 	sendToTarget: function(fiwareObject,target) {
 		var _fiwareObject = fiwareObject
-		//log(fiwareObject);
+		log(fiwareObject);
 		//log(target);
 		if (target.name=='contextBroker') {
 			self.postDataContextBroker(_fiwareObject,target)
@@ -321,19 +338,19 @@ module.exports = {
 	},
 	postDataContextBroker:function(fiwareObject,target){
 		var _fiwareObject = fiwareObject
+//		logDir(_fiwareObject)
 		log('POST data '+target.name+' '+target.host+':'+target.FiwareService+target.FiwareServicePath+' id:'+_fiwareObject.id+' type:'+_fiwareObject.type);
 //		var postData = {};
 //		postData.id = fiwareObject.id;
 //		postData.type = fiwareObject.type;
 //		postData.content = fiwareObject.sourceAttributes;
-		log('xxxxxxxxxxxxxxxxxx')
-    logDir(_fiwareObject)
-    if (_fiwareObject.PM25 != undefined) {
-			log('2xxxxxxxxxxxxxxxxx')
-			log(_fiwareObject.PM25.value)
-		}
+		//log('xxxxxxxxxxxxxxxxxx')
+    //logDir(_fiwareObject)
+//    if (_fiwareObject.PM25 != undefined) {
+//			log('2xxxxxxxxxxxxxxxxx')
+//			log(_fiwareObject.PM25.value)
+//		}
 		var _data = JSON.stringify(_fiwareObject);
-
 
 		var options = {
 		  hostname: target.host,
@@ -356,7 +373,12 @@ module.exports = {
 
 		  res.on('data', (d) => {
 		    process.stdout.write(d);
-				log(d);
+				//log(d);
+				fiwareObjectsIndex++
+				if (fiwareObjectsIndex<fiwareObjects.length) {
+					self.processFiwareObjects()
+				}
+
 		  });
 		});
 
