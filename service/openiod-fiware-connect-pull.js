@@ -377,14 +377,52 @@ module.exports = {
 //		}
 	)
 		.then(function (response) {
-    	//console.log(response);
+			if (response.data.statusCode == '422') {
+				console.log('Statuscode 422 and '+ response.data.statusDesc);
+//				console.dir(response.data)
+			}
+			if (response.data.statusCode == '422' && response.data.statusDesc=='Already Exists') {
+				// if (response.data.statusDesc=='Already Exists') {
+	//			if (response.data.description=='Already Exists') {
+					console.log('Already Exists');
+			}
+			if (response.data.status == '422') {
+				console.log('Status 422 and '+ response.data.statusData.description);
+			}
+			if (response.data.status == 422 && response.data.statusData.description=='Already Exists') {
+				// if (response.data.statusDesc=='Already Exists') {
+				// if (response.data.description=='Already Exists') {
+					console.log('Already Exists 2');
+			}
+
 			fiwareObjectsIndex++
 			if (fiwareObjectsIndex<fiwareObjects.length) {
 				self.processFiwareObjects()
 			}
 		})
 		.catch(function (error) {
-    	console.log(error);
+			if (error.response) {
+					// The request was made and the server responded with a status code
+					// that falls out of the range of 2xx
+					log('error.response');
+					//logDir(error.response.data);
+					logDir(error.response.status);
+					//logDir(error.response.headers);
+			} else if (error.request) {
+				log('error.request');
+					// The request was made but no response was received
+					// `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+					// http.ClientRequest in node.js
+					//logDir(error.request);
+			} else {
+					// Something happened in setting up the request that triggered an Error
+					log('Error', error.message);
+			}
+			//log(error.config);
+			log('Error config code: '+ error.code);
+			logDir(error)
+
+
 			fiwareObjectsIndex++
 			if (fiwareObjectsIndex<fiwareObjects.length) {
 				self.processFiwareObjects()
