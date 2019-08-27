@@ -12,14 +12,14 @@
     }
   },
   "service": {
-    "josene": {
+    "{{servicename}}": {
       "procedure": {
         "name": "default pull",
         "module": "openiod-fiware-connect-pull",
         "repeat": {"wait":60000}
       },
       "source": {
-        "name": "josene",
+        "name": "{{servicename}}",
         "controller":"openiod-fiware-controller-{{controller procedure}}",
         "method": "GET",
         "protocol": "https",
