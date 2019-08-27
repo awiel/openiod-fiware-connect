@@ -34,6 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //var request 			= require('request');
 //var express 			= require('express');
 var https 			= require('https');
+var   axios 							= require('axios');
 //const querystring = require('querystring');
 
 //var cookieParser 		= require('cookie-parser');
@@ -351,6 +352,8 @@ module.exports = {
 //			log(_fiwareObject.PM25.value)
 //		}
 		var _data = JSON.stringify(_fiwareObject);
+		var _url = target.protocol+"://"+target.host+":"+target.port+target.prefixPath+target.path
+		log(_url)
 
 		var options = {
 		  hostname: target.host,
@@ -362,32 +365,95 @@ module.exports = {
 		       'Content-Length': 			_data.length,
 					 'Fiware-Service': 			target.FiwareService,
 					 'Fiware-ServicePath': 	target.FiwareServicePath
-		     }
+		     },
+			data: _data,
+			url:_url
 		};
-
-		//console.log(options);
-		//console.log(_data);
-		var req = https.request(options, (res) => {
-		  log('statusCode:' + res.statusCode);
-		  //console.log('headers:', res.headers);
-
-		  res.on('data', (d) => {
-		    process.stdout.write(d);
-				//log(d);
-				fiwareObjectsIndex++
-				if (fiwareObjectsIndex<fiwareObjects.length) {
-					self.processFiwareObjects()
-				}
-
-		  });
+		axios(options,
+//			{
+//    	method: 'post',
+//    	url: '/addUser',
+//    	data: _data
+//		}
+	)
+		.then(function (response) {
+    	//console.log(response);
+			fiwareObjectsIndex++
+			if (fiwareObjectsIndex<fiwareObjects.length) {
+				self.processFiwareObjects()
+			}
+		})
+		.catch(function (error) {
+    	console.log(error);
+			fiwareObjectsIndex++
+			if (fiwareObjectsIndex<fiwareObjects.length) {
+				self.processFiwareObjects()
+			}
 		});
 
-		req.on('error', (e) => {
-		  console.error(e);
-		});
+},
+postDataContextBrokerOld:function(fiwareObject,target){
+	var _fiwareObject = fiwareObject
+//		logDir(_fiwareObject)
+	log('POST data '+target.name+' '+target.host+':'+target.FiwareService+target.FiwareServicePath+' id:'+_fiwareObject.id+' type:'+_fiwareObject.type);
+//		var postData = {};
+//		postData.id = fiwareObject.id;
+//		postData.type = fiwareObject.type;
+//		postData.content = fiwareObject.sourceAttributes;
+	//log('xxxxxxxxxxxxxxxxxx')
+	//logDir(_fiwareObject)
+//    if (_fiwareObject.PM25 != undefined) {
+//			log('2xxxxxxxxxxxxxxxxx')
+//			log(_fiwareObject.PM25.value)
+//		}
+	var _data = JSON.stringify(_fiwareObject);
 
-		req.write(_data);
-		req.end();
+	var options = {
+		hostname: target.host,
+		port: 		target.port,
+		path: 		target.prefixPath+target.path,
+		method: 	target.method,
+		headers: {
+				 'Content-Type': 				'application/json',
+				 'Content-Length': 			_data.length,
+				 'Fiware-Service': 			target.FiwareService,
+				 'Fiware-ServicePath': 	target.FiwareServicePath
+			 }
+	};
+
+	//console.log(options);
+	//console.log(_data);
+	var req = https.request(options, (res) => {
+		log('statusCode:' + res.statusCode);
+		//console.log('headers:', res.headers);
+
+		res.on('data', (d) => {
+			process.stdout.write(d);
+			//log(d);
+			log('data')
+
+		});
+		res.on('end', (d) => {
+			//process.stdout.write(d);
+			log('Service end: '+_service.name+' data sent.')
+			fiwareObjectsIndex++
+			if (fiwareObjectsIndex<fiwareObjects.length) {
+				self.processFiwareObjects()
+			}
+		});
+	});
+
+	req.on('error', (e) => {
+		log('error')
+		console.error(e);
+		fiwareObjectsIndex++
+		if (fiwareObjectsIndex<fiwareObjects.length) {
+			self.processFiwareObjects()
+		}
+	});
+
+	req.write(_data);
+	req.end();
 }
 
 }
