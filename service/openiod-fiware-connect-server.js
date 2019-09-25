@@ -232,8 +232,8 @@ module.exports = {
 
 		this.initRoutes();
 
-		log('listening to port: ' + service.serviceListenPort);
-		app.listen(service.serviceListenPort);
+		log('listening to port: ' + _source.port);
+		app.listen(source.port);
 
 	},
   selectSource: function(req){
