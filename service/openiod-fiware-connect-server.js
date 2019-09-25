@@ -233,7 +233,7 @@ module.exports = {
 		this.initRoutes();
 
 		log('listening to port: ' + _source.port);
-		app.listen(source.port);
+		app.listen(_source.port);
 
 	},
   selectSource: function(req){
