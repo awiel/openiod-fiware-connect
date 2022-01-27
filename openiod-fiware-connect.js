@@ -73,16 +73,18 @@ var argv								= {}
 argv.command						= process.argv[2]; // push or pull
 argv.serviceName				= process.argv[3]; // service name e.g. josene or vtec
 var argvFois            = process.argv[4]; // parameter for feature of interest(s)
-var paramKey    = argvFois.split('=')[0]
-if (paramKey=='foi') {
-  try {
-    var paramValue = argvFois.substr(4);
-    argv.fois      = JSON.parse(paramValue);
-  }
-  catch(error){
-    log('No json parameter for fois. '+argvFois.substr(4));
-    return;
-  }
+if (argvFois != undefined) {
+	var paramKey    = argvFois.split('=')[0]
+	if (paramKey=='foi') {
+	  try {
+	    var paramValue = argvFois.substr(4);
+	    argv.fois      = JSON.parse(paramValue);
+	  }
+	  catch(error){
+	    log('No json parameter for fois. '+argvFois.substr(4));
+	    return;
+	  }
+	}
 }
 openIoDConfig.init(main_module, argv);
 
@@ -152,6 +154,7 @@ var getModule = function(service,modulePath) {
     serviceCache[service.name] = require(modulePath+'.js');
 	}
 	catch(e) {
+		 console.dir(e)
 	}
 }
 var executeService = function() {
@@ -202,8 +205,9 @@ if (argv.serviceName == undefined) {
 	console.error(errorMessages.NOARGVSERVICE.message);
 	return errorMessages.NOARGVSERVICE.returnCode;
 }
-//console.dir(argv);
+console.dir(argv);
 _service = openIoDConfig.getConfigService(argv.serviceName);
+console.dir(_service)
 //console.dir(_service);
 _service.name= argv.serviceName;
 if (_service == undefined) {
@@ -211,9 +215,10 @@ if (_service == undefined) {
 	return errorMessages.NOARGVSERVICE.returnCode;
 }
 
-log("OpenIoD FIWARE execute: " + argv.command +' service '+ argv.serviceName +
-	', source: ' + _service.source.name + ', procedure: ' + _service.procedure.name +
-  ', target: ' + _service.target.name);
+log("OpenIoD FIWARE execute: " + argv.command +' service '+ argv.serviceName)
+if (_service.listener!=undefined) log("- listener: " + _service.listener.name)
+if (_service.source!=undefined) log("- source  : " + _service.source.name + ', procedure: ' + _service.procedure.name)
+if (_service.target!=undefined) log("- target  : " + _service.target.name);
 
 executeService();
 

@@ -104,6 +104,9 @@ module.exports = {
 	setData:function(sourceData){
 		_sourceData = sourceData;
 	},
+	dev_id:function(inValue){
+		return inValue;
+	},
 	station:function(inValue){
 		return inValue;
 	},
@@ -131,14 +134,20 @@ module.exports = {
 		if (_latitude != undefined && _longitude!= undefined && _height!= undefined) return getLocation(_location,_latitude,_longitude,_height);
 		else return undefined;
 	},
-	pm1:function(inValue){
+	PM1:function(inValue){
 		return inValue;
 	},
-	pm25:function(inValue){
+	PM25:function(inValue){
 		return inValue;
 	},
-	pm10:function(inValue){
-		return getAirPressure(inValue);
+	PM10:function(inValue){
+		return inValue;
+	},
+	RH:function(inValue){
+		return getRelativeHumidity(inValue);
+	},
+	TempC:function(inValue){
+		return getTemperature(inValue);
 	}
 }
 
