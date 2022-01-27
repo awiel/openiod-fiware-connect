@@ -4,7 +4,7 @@
   "description": "",
   "main": "openiod-fiware-connect.js",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": ">=0.21.2",
     "express": "^4.16.4",
     "mongodb": "^3.3.2",
     "winston": "^3.2.1"
