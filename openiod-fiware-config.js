@@ -105,9 +105,9 @@
 				// service(s)
 				localService							= systemConfig.service;
 				localServiceContent				= systemConfig.service[argv.serviceName];
-				if (localServiceContent.listener!=undefined & localServiceContent.listener.port!=undefined) {
-					systemListenPort = localServiceContent.listener.port;
-				}
+//				if (localServiceContent.listener!=undefined && localServiceContent.listener.port!=undefined) {
+//					systemListenPort = localServiceContent.listener.port;
+//				}
 				//console.dir(localService);
 
 				// Parameters

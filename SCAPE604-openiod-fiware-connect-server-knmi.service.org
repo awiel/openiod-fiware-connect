@@ -1,0 +1,10 @@
+[Unit]
+Description=SCAPE604-openiod-fiware-connect-server-knmi - start or restart this service, respawn
+After=network.target
+[Service]
+ExecStart=/opt/SCAPE604/config/openiod-fiware-connect-server-knmi.sh 
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

@@ -83,11 +83,10 @@ var errorMessages = {
 
 var _openIoDConfig;
 var _service;
-var _listener;
-var _listenerController;
 var _source;
 var _sourceIdMap;
 var _sourceAttributeMap;
+var _sourceController;
 var _sourceCopyTarget;
 var _target;
 var self;
@@ -194,7 +193,6 @@ module.exports = {
 		log('Init service '+service.name);
 		_openIoDConfig 			= openIoDConfig;
 		_service 						= service;
-    _listener 					= service.listener;
 		_source 						= service.source;
 		_sourceIdMap 				= _source.idMap;
 		_sourceAttributeMap = _source.attributeMap;
@@ -204,26 +202,26 @@ module.exports = {
 //		}
 
 
-    if (_listener.controller) {
-			_listenerController 	= require(__dirname+'/../controller/'+_listener.controller);
-			_listenerController.init(_service,_openIoDConfig);
-
-      console.dir(_listenerController);
-			if(_listenerController.processInputParameters) {
+    if (_source.controller) {
+			_sourceController 	= require(__dirname+'/../controller/'+_source.controller);
+			_sourceController.init(_service,_openIoDConfig);
+      console.dir(_sourceController);
+			if(_sourceController.processInputParameters) {
         console.log('OK');
-				this.processInputParameters = _listenerController.processInputParameters;
+				this.processInputParameters = _sourceController.processInputParameters;
 	    }
-      if(_listenerController.selectSource) {
-				this.selectSource = _listenerController.selectSource;
+      if(_sourceController.selectSource) {
+				this.selectSource = _sourceController.selectSource;
 	    }
+
 //			if(_sourceController.readData) {
 //				this.readData = _sourceController.readData;
 //			}
-			if(_listenerController.processResult) {
-				this.processResult = _listenerController.processResult;
+			if(_sourceController.processResult) {
+				this.processResult = _sourceController.processResult;
 			}
-//			if(_listenerController.setArgv) {
-//				_listenerController.setArgv(_openIoDConfig.getArgv().fois);
+//			if(_sourceController.setArgv) {
+//				_sourceController.setArgv(_openIoDConfig.getArgv().fois);
 //			}
 		}
 
@@ -234,8 +232,8 @@ module.exports = {
 
 		this.initRoutes();
 
-		log('listening to port: ' + _listener.port);
-		app.listen(_listener.port);
+		log('listening to port: ' + _source.port);
+		app.listen(_source.port);
 
 	},
   selectSource: function(req){
