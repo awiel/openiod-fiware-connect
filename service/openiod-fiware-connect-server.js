@@ -354,6 +354,7 @@ initRoutes: function(){
 			result.R1H = results.R1H[i];
 			result.ta = results.ta[i];
 			result.rh = results.rh[i];
+      result.qg = results.qg[i];
 			result.time = results.time;
 			result.entityTime = results.entityTime;
 			structuredResults.push(result);
