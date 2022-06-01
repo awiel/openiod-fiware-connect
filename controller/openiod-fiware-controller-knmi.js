@@ -151,6 +151,9 @@ module.exports = {
 	},
 	rh:function(inValue){
 		return getRelativeHumidity(inValue);
+	},
+	qg:function(inValue){
+		return inValue;
 	}
 }
 
